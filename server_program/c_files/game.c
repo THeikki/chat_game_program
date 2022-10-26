@@ -39,40 +39,37 @@ void* game_handling(void* p_args) {
     difficulty = choose_difficulty_level(p);
 
     if(difficulty == 1) {
+        p->moves = 6;
         row_settings = EASY_ROWS;
         column_settings = EASY_COLUMNS;
         mine_settings = EASY_MINES;
-       
-        p->level.mine_numbers[EASY_MINES];
         p->level.mine_locations[EASY_ROWS][EASY_COLUMNS];
         p->level.free_locations[EASY_ROWS][EASY_COLUMNS];
         p->level.taken_locations[EASY_ROWS][EASY_COLUMNS];
         p->level.grid_array[EASY_ROWS][EASY_COLUMNS];
     }
     else if(difficulty == 2) {
+        p->moves = 24;
         row_settings = MEDIUM_ROWS;
         column_settings = MEDIUM_COLUMNS;
         mine_settings = MEDIUM_MINES;
-        p->level.mine_numbers[MEDIUM_MINES];
         p->level.mine_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
         p->level.free_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
         p->level.taken_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
         p->level.grid_array[MEDIUM_ROWS][MEDIUM_COLUMNS];
     }
     else if(difficulty == 3) {
+        p->moves = 54;
         row_settings = HARD_ROWS;
         column_settings = HARD_COLUMNS;
         mine_settings = HARD_MINES;
-        p->level.mine_numbers[HARD_MINES];
         p->level.mine_locations[HARD_ROWS][HARD_COLUMNS];
         p->level.free_locations[HARD_ROWS][HARD_COLUMNS];
         p->level.taken_locations[HARD_ROWS][HARD_COLUMNS];
         p->level.grid_array[HARD_ROWS][HARD_COLUMNS];
     }
+
     //  Initialize struct arrays to zero
-    for(int i = 0; i < mine_settings; i++) {
-        p->level.mine_numbers[i] = 0;
-    }
     for(int i = 0; i < row_settings; i++) {
         for(int j = 0; j < column_settings; j++) {
             p->level.mine_locations[i][j] = 0;
@@ -85,16 +82,16 @@ void* game_handling(void* p_args) {
     send(*p->socket, clear_message, strlen(clear_message), 0);
     send(*p->socket, welcome_message, strlen(welcome_message), 0);
 
+    print_number_of_mines_grid(p, difficulty);
     print_grid(p, row_settings, column_settings);
-    get_random_mine_locations(p, column_settings -1, 0, mine_settings);
-    setup_mines(p, row_settings, column_settings, mine_settings);
+    setup_mines(p, row_settings, column_settings, mine_settings, difficulty);
    
     do {
         //pthread_mutex_lock(&lock);
         get_player_input(p, column_settings, difficulty);
         //pthread_mutex_unlock(&lock);
-        check_move(p, row_settings, column_settings);
-        check_if_win(p, row_settings, column_settings);  
+        check_move(p, row_settings, column_settings, difficulty);
+        check_if_win(p, row_settings, column_settings, difficulty);  
     } while (1);
 }
 /**********************************************************************************************************************
@@ -170,17 +167,6 @@ void print_grid(void* p_arg, int row_settings, int column_settings) {
     vertical_numbers = NULL; 
 }
 /**********************************************************************************************************************
-    GETS MINE RANDOM NUMBERS
-*/
-void get_random_mine_locations(void* p_arg, int max, int min, int count) {
-    struct arg *p = p_arg;
-    srand(time(NULL));
-
-    for(int i = 0; i < count; i++) {
-        *(p->level.mine_numbers + i) = rand() % (max - min);
-    }
-}
-/**********************************************************************************************************************
     GETS PLAYER INPUT
 */
 void get_player_input(void* p_arg, int column_settings, int difficulty) {
@@ -240,9 +226,7 @@ void get_player_input(void* p_arg, int column_settings, int difficulty) {
         x_input_prompt = NULL;
 
         if(difficulty == 1) {
-            while (*y_input != '0' && *y_input != '1' && *y_input != '2' && *y_input != '3' 
-                               && *y_input != '4' && *y_input != '5' && *y_input != '6' 
-                               && *y_input != '7') {
+            while (*y_input != '0' && *y_input != '1' && *y_input != '2') {
 
                 send(*p->socket, y_input_prompt, strlen(y_input_prompt), 0);
                 result = recv(*p->socket, y_input, 200, 0); 
@@ -292,28 +276,87 @@ void get_player_input(void* p_arg, int column_settings, int difficulty) {
 /**********************************************************************************************************************
     SETUP MINES IN ARRAY
 */
-void setup_mines(void* p_arg, int row_settings, int column_settings, int mine_settings) {
+void setup_mines(void* p_arg, int row_settings, int column_settings, int mine_settings, int difficulty) {
     struct arg *p = p_arg;
-    int *a = p->level.mine_numbers;
-    int mine_num = 0;
     int mine_count;
+    int mine = 0, mine2 = 0, mine3 = 0;
+    int max = 0;
+    int min = 0;
+   
+    srand(time(NULL));
     
-    //  Set mine locations to array
-    for(int i = 0; i < row_settings; i++) {
-        for(int j = 0; j < column_settings; j++) {
-            if(j == *a && mine_num != mine_settings ) {
-                p->level.mine_locations[i][j] = 9;
-                p->level.grid_array[i][j] = p->level.mine_locations[i][j];
-                *a++;
-                mine_num++;
-            }
-            else {
-                p->level.free_locations[i][j] = 1;
-                p->level.grid_array[i][j] = p->level.mine_locations[i][j];
-            }
+    if(difficulty == 1) {
+        min = 0;
+        max = 3;
+        for (int i = 0; i < row_settings; i++)
+        { 
+            mine = rand() % (max - min);  
+            for (int j = 0; j < column_settings; j++)
+            {
+                if(j == mine) { 
+                    p->level.mine_locations[i][j] = 9;
+                    p->level.grid_array[i][j] = p->level.mine_locations[i][j];
+                }
+                else {
+                    p->level.free_locations[i][j] = 1;
+                    p->level.grid_array[i][j] = p->level.free_locations[i][j];
+                } 
+            }             
         }
     }
 
+    else if(difficulty == 2) {
+        min = 0;
+        max = 6;
+        for (int i = 0; i < row_settings; i++)
+        { 
+            mine = rand() % (max - min);  
+            while (mine2 == mine)
+            {
+                mine2 = rand() % (max - min);
+            }
+            for (int j = 0; j < column_settings; j++)
+            {
+                if(j == mine || j == mine2) { 
+                    p->level.mine_locations[i][j] = 9;
+                    p->level.grid_array[i][j] = p->level.mine_locations[i][j];
+                }
+                else {
+                    p->level.free_locations[i][j] = 1;
+                    p->level.grid_array[i][j] = p->level.free_locations[i][j];
+                } 
+            }             
+        }
+    }
+
+    else if(difficulty == 3) {
+        min = 0;
+        max = 9;
+        for (int i = 0; i < row_settings; i++)
+        { 
+            mine = rand() % (max - min);  
+            while (mine2 == mine)
+            {
+                mine2 = rand() % (max - min);
+            }
+            while (mine3 == mine2 || mine3 == mine)
+            {
+                mine3 = rand() % (max - min);
+            }
+            for (int j = 0; j < column_settings; j++)
+            {
+                if(j == mine || j == mine2 || j == mine3) {
+                    p->level.mine_locations[i][j] = 9;
+                    p->level.grid_array[i][j] = p->level.mine_locations[i][j];
+                }
+                else {
+                    p->level.free_locations[i][j] = 1;
+                    p->level.grid_array[i][j] = p->level.free_locations[i][j];
+                } 
+            }             
+        }
+    }
+   
     // Arrange mines and neighbours in array
     for (int i = 0; i < row_settings; i++)
     {
@@ -416,7 +459,7 @@ void gameover_action_prompt(void* p_arg, int status) {
 /**********************************************************************************************************************
     CHECK PLAYER`S MOVE
 */
-void check_move(void* p_arg, int row_settings, int column_settings) {
+void check_move(void* p_arg, int row_settings, int column_settings, int difficulty) {
     struct arg *p = p_arg;
 
     grid_numbers = malloc(sizeof(int) * column_settings);
@@ -432,7 +475,7 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
     }
     
     else{ 
-        //  Check how many mines are near taken coordinates
+        //  Check how many mines are near given coordinates
         for (int i = 0; i < row_settings; i++)
         {
             for (int j = 0; j < column_settings; j++)
@@ -457,9 +500,10 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
             }        
         }
 
-        //  Set guessed coordinates to 
+        //  Set guessed coordinates to taken
         p->level.taken_locations[x][y] = p->level.free_locations[x][y];
-
+        p->moves--;
+       
         //  Reveal all zero spots
         if(mine_count == 0) {    
             reveal_zero_numbers(p, x, y, row_settings, column_settings);
@@ -479,6 +523,9 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
             }
             send(*p->socket, new_line, strlen(new_line), 0);
         }
+
+        // Print number of mines in level
+        print_number_of_mines_grid(p, difficulty);
 
         //  Print array and taken guesses   
         for(int i = 0; i < column_settings; i++) {
@@ -519,17 +566,60 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
     }
 }
 /**********************************************************************************************************************
+    PRINT NUMBER OF MINES IN GRID
+*/
+void print_number_of_mines_grid(void* p_arg, int difficulty) {
+    struct arg *p = p_arg;
+    char* level_mine_count = malloc(sizeof(int) + sizeof(char) * 20);
+    
+    if(difficulty == 1) {
+        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
+        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+    }
+    else if(difficulty == 2) {
+        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
+        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+    }
+    else if(difficulty == 3) {
+        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
+        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+        send(*p->socket, new_line, strlen(new_line), 0);
+    }
+    free(level_mine_count);
+    level_mine_count = NULL;
+}
+/**********************************************************************************************************************
     CHECK IF PLAYER HAS WON
 */
-void check_if_win(void* p_arg, int row_settings, int column_settings) {
+void check_if_win(void* p_arg, int row_settings, int column_settings, int difficulty) {
     struct arg *p = p_arg;
-    int response, win;
-    response = memcmp(p->level.free_locations, p->level.taken_locations, row_settings * column_settings * sizeof(int));
+    int win;
     
-    if (response == 0) {
-        show_prompt = 1;
-        win = 0;
-        gameover_action_prompt(p, win);
+    if(difficulty == 1) {
+        if (p->moves == 0) {
+            show_prompt = 1;
+            win = 0;
+            gameover_action_prompt(p, win);
+        }
+    }
+    else if(difficulty == 2) {
+        if (p->moves == 0) {
+            show_prompt = 1;
+            win = 0;
+            gameover_action_prompt(p, win);
+        }
+    }
+    if(difficulty == 3) {
+        if (p->moves == 0) {
+            show_prompt = 1;
+            win = 0;
+            gameover_action_prompt(p, win);
+        }
     }
 }
 /**********************************************************************************************************************
