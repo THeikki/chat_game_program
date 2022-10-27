@@ -41,7 +41,7 @@ void* game_handling(void* p_args) {
 
     if(difficulty == 1) {
         p->level.moves_left = 6;
-        p->level.zeros_revealed = 0;
+        p->level.is_blocked = 0;
         row_settings = EASY_ROWS;
         column_settings = EASY_COLUMNS;
         p->level.mine_locations[EASY_ROWS][EASY_COLUMNS];
@@ -52,7 +52,7 @@ void* game_handling(void* p_args) {
     }
     else if(difficulty == 2) {
         p->level.moves_left = 24;
-        p->level.zeros_revealed = 0;
+        p->level.is_blocked = 0;
         row_settings = MEDIUM_ROWS;
         column_settings = MEDIUM_COLUMNS;
         p->level.mine_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
@@ -63,7 +63,7 @@ void* game_handling(void* p_args) {
     }
     else if(difficulty == 3) {
         p->level.moves_left = 54;
-        p->level.zeros_revealed = 0;
+        p->level.is_blocked = 0;
         row_settings = HARD_ROWS;
         column_settings = HARD_COLUMNS;
         p->level.mine_locations[HARD_ROWS][HARD_COLUMNS];
@@ -510,7 +510,7 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
         p->level.taken_locations[x][y] = p->level.free_locations[x][y];
         
         //  Reveal all zero spots
-        if(mine_count == 0 && p->level.zeros_revealed != 1) {  
+        if(mine_count == 0 && p->level.is_blocked != 1) {  
             reveal_zero_numbers(p, x, y, row_settings, column_settings);
         }
         // Check if gues is already taken
@@ -628,5 +628,5 @@ void reveal_zero_numbers(void* p_arg, int x, int y, int row_settings, int column
     }
     printf("ZEROS:%d\n", zero_nums);
     p->level.moves_left = p->level.moves_left - zero_nums;
-    p->level.zeros_revealed = 1;
+    p->level.is_blocked = 1;
 } 
