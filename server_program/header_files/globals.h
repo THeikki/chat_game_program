@@ -17,18 +17,12 @@
 #define BUFFER 1024
 #define CLIENTS 2
 #define GAMERS 2
-
 #define EASY_ROWS 3
 #define EASY_COLUMNS 3
-#define EASY_MINES 2
-
 #define MEDIUM_ROWS 6
 #define MEDIUM_COLUMNS 6
-#define MEDIUM_MINES 8
-
 #define HARD_ROWS 9
 #define HARD_COLUMNS 9
-#define HARD_MINES 13
 #define DEBUG_MODE 1    //  Shows mine locations on grid [1 = on    0 = off]
 
 #endif

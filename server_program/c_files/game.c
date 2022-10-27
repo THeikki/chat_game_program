@@ -42,7 +42,6 @@ void* game_handling(void* p_args) {
         p->level.moves_left = 6;
         row_settings = EASY_ROWS;
         column_settings = EASY_COLUMNS;
-        mine_settings = EASY_MINES;
         p->level.mine_locations[EASY_ROWS][EASY_COLUMNS];
         p->level.free_locations[EASY_ROWS][EASY_COLUMNS];
         p->level.taken_locations[EASY_ROWS][EASY_COLUMNS];
@@ -52,7 +51,6 @@ void* game_handling(void* p_args) {
         p->level.moves_left = 24;
         row_settings = MEDIUM_ROWS;
         column_settings = MEDIUM_COLUMNS;
-        mine_settings = MEDIUM_MINES;
         p->level.mine_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
         p->level.free_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
         p->level.taken_locations[MEDIUM_ROWS][MEDIUM_COLUMNS];
@@ -62,7 +60,6 @@ void* game_handling(void* p_args) {
         p->level.moves_left = 54;
         row_settings = HARD_ROWS;
         column_settings = HARD_COLUMNS;
-        mine_settings = HARD_MINES;
         p->level.mine_locations[HARD_ROWS][HARD_COLUMNS];
         p->level.free_locations[HARD_ROWS][HARD_COLUMNS];
         p->level.taken_locations[HARD_ROWS][HARD_COLUMNS];
@@ -357,7 +354,7 @@ void setup_mines(void* p_arg, int row_settings, int column_settings, int mine_se
         }
     }
    
-    // Arrange mines and neighbours in array
+    // Arrange neighbour numbers of mines in array
     for (int i = 0; i < row_settings; i++)
     {
         for (int j = 0; j < column_settings; j++)
@@ -502,6 +499,7 @@ void check_move(void* p_arg, int row_settings, int column_settings, int difficul
 
         //  Set guessed coordinates to taken
         p->level.taken_locations[x][y] = p->level.free_locations[x][y];
+        //p->level.taken_locations[x][y] = p->level.grid_array[x][y];
         p->level.moves_left--;
        
         //  Reveal all zero spots
