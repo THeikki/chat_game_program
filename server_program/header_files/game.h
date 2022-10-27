@@ -27,7 +27,7 @@ void print_grid(void* p_arg, int row_settings, int column_settings);
 void setup_mines(void* p_arg, int row_settings, int column_settings, int mine_settings, int difficulty);
 void get_player_input(void* p_arg, int column_settings, int difficulty);
 void check_move(void* p_arg, int row_settings, int column_settings, int difficulty);
-void print_number_of_mines_grid(void* p_arg, int difficulty);
+void print_number_of_mines_grid(void* p_arg);
 void check_if_win(void* p_arg, int row_settings, int column_settings, int difficulty);
 void reveal_zero_numbers(void* p_arg, int x, int y, int row_settings, int column_settings);
 void gameover_action_prompt(void* p_arg, int status);

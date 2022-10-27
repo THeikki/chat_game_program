@@ -13,6 +13,7 @@ extern int client_num;
 extern int array_index;
 
 struct array {
+    int moves_left;
     int mine_locations[HARD_ROWS][HARD_COLUMNS];
     int free_locations[HARD_ROWS][HARD_COLUMNS];
     int taken_locations[HARD_ROWS][HARD_COLUMNS];
@@ -22,7 +23,6 @@ struct array {
 static struct arg {
     int* socket;
     int* index;
-    int moves;
     struct array level;
 }arguments;
 

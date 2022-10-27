@@ -39,7 +39,7 @@ void* game_handling(void* p_args) {
     difficulty = choose_difficulty_level(p);
 
     if(difficulty == 1) {
-        p->moves = 6;
+        p->level.moves_left = 6;
         row_settings = EASY_ROWS;
         column_settings = EASY_COLUMNS;
         mine_settings = EASY_MINES;
@@ -49,7 +49,7 @@ void* game_handling(void* p_args) {
         p->level.grid_array[EASY_ROWS][EASY_COLUMNS];
     }
     else if(difficulty == 2) {
-        p->moves = 24;
+        p->level.moves_left = 24;
         row_settings = MEDIUM_ROWS;
         column_settings = MEDIUM_COLUMNS;
         mine_settings = MEDIUM_MINES;
@@ -59,7 +59,7 @@ void* game_handling(void* p_args) {
         p->level.grid_array[MEDIUM_ROWS][MEDIUM_COLUMNS];
     }
     else if(difficulty == 3) {
-        p->moves = 54;
+        p->level.moves_left = 54;
         row_settings = HARD_ROWS;
         column_settings = HARD_COLUMNS;
         mine_settings = HARD_MINES;
@@ -82,7 +82,7 @@ void* game_handling(void* p_args) {
     send(*p->socket, clear_message, strlen(clear_message), 0);
     send(*p->socket, welcome_message, strlen(welcome_message), 0);
 
-    print_number_of_mines_grid(p, difficulty);
+    print_number_of_mines_grid(p);
     print_grid(p, row_settings, column_settings);
     setup_mines(p, row_settings, column_settings, mine_settings, difficulty);
    
@@ -502,7 +502,7 @@ void check_move(void* p_arg, int row_settings, int column_settings, int difficul
 
         //  Set guessed coordinates to taken
         p->level.taken_locations[x][y] = p->level.free_locations[x][y];
-        p->moves--;
+        p->level.moves_left--;
        
         //  Reveal all zero spots
         if(mine_count == 0) {    
@@ -525,7 +525,7 @@ void check_move(void* p_arg, int row_settings, int column_settings, int difficul
         }
 
         // Print number of mines in level
-        print_number_of_mines_grid(p, difficulty);
+        print_number_of_mines_grid(p);
 
         //  Print array and taken guesses   
         for(int i = 0; i < column_settings; i++) {
@@ -568,28 +568,14 @@ void check_move(void* p_arg, int row_settings, int column_settings, int difficul
 /**********************************************************************************************************************
     PRINT NUMBER OF MINES IN GRID
 */
-void print_number_of_mines_grid(void* p_arg, int difficulty) {
+void print_number_of_mines_grid(void* p_arg) {
     struct arg *p = p_arg;
     char* level_mine_count = malloc(sizeof(int) + sizeof(char) * 20);
     
-    if(difficulty == 1) {
-        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
-        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-    }
-    else if(difficulty == 2) {
-        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
-        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-    }
-    else if(difficulty == 3) {
-        sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->moves);
-        send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-        send(*p->socket, new_line, strlen(new_line), 0);
-    }
+    sprintf(level_mine_count, "SAFE MOVES LEFT: %d", p->level.moves_left);
+    send(*p->socket, level_mine_count, strlen(level_mine_count), 0);
+    send(*p->socket, new_line, strlen(new_line), 0);
+    send(*p->socket, new_line, strlen(new_line), 0);
     free(level_mine_count);
     level_mine_count = NULL;
 }
@@ -600,26 +586,10 @@ void check_if_win(void* p_arg, int row_settings, int column_settings, int diffic
     struct arg *p = p_arg;
     int win;
     
-    if(difficulty == 1) {
-        if (p->moves == 0) {
-            show_prompt = 1;
-            win = 0;
-            gameover_action_prompt(p, win);
-        }
-    }
-    else if(difficulty == 2) {
-        if (p->moves == 0) {
-            show_prompt = 1;
-            win = 0;
-            gameover_action_prompt(p, win);
-        }
-    }
-    if(difficulty == 3) {
-        if (p->moves == 0) {
-            show_prompt = 1;
-            win = 0;
-            gameover_action_prompt(p, win);
-        }
+    if (p->level.moves_left == 0) {
+        show_prompt = 1;
+        win = 0;
+        gameover_action_prompt(p, win);
     }
 }
 /**********************************************************************************************************************
