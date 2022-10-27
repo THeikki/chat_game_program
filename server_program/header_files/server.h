@@ -14,8 +14,10 @@ extern int array_index;
 
 struct array {
     int moves_left;
+    int zeros_revealed;
     int mine_locations[HARD_ROWS][HARD_COLUMNS];
     int free_locations[HARD_ROWS][HARD_COLUMNS];
+    int locked_locations[HARD_ROWS][HARD_COLUMNS];
     int taken_locations[HARD_ROWS][HARD_COLUMNS];
     int grid_array[HARD_ROWS][HARD_COLUMNS];
 };
