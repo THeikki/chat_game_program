@@ -14,6 +14,7 @@
 
 #define PORT 8081
 #define ADDRESS "127.0.0.1"
+//#define ADDRESS "192.168.1.100"
 #define BUFFER 1024
 #define CLIENTS 2
 #define GAMERS 2

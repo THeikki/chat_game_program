@@ -19,8 +19,6 @@ int y;
 int show_prompt;
 int result;
 int player_quit;
-
-//pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 /*******************************************************************************************************
     GAME HANDLING FUNCTION
 */
@@ -92,9 +90,7 @@ void* game_handling(void* p_args) {
     setup_mines(p, row_settings, column_settings, mine_settings, difficulty);
    
     do {
-        //pthread_mutex_lock(&lock);
         get_player_input(p, column_settings, difficulty);
-        //pthread_mutex_unlock(&lock);
         check_move(p, row_settings, column_settings);
         check_if_win(p, row_settings, column_settings);  
     } while (1);
@@ -508,7 +504,7 @@ void check_move(void* p_arg, int row_settings, int column_settings) {
 
         //  Set guessed coordinates to taken array 
         p->level.taken_locations[x][y] = p->level.free_locations[x][y];
-        
+
         //  Reveal all zero spots
         if(mine_count == 0 && p->level.is_blocked != 1) {  
             reveal_zero_numbers(p, x, y, row_settings, column_settings);
