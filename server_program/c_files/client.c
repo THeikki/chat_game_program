@@ -5,16 +5,14 @@ SOCKET clients[CLIENTS];
 struct sockaddr_in client_address;
 socklen_t clientLen = sizeof(client_address);
 pthread_t game_thread;
-pthread_t game_threads[GAMERS];
-pthread_mutex_t mutex;
 
 int player_num = 0;
 
 /*******************************************************************************************************
     CLIENT HANDLING
 */
-void* client_handling(void* p_args) {
-    struct arg *p = p_args;
+void* client_handling(void* client_args) {
+    struct client *p_client = client_args;
     int num, response, temp, result;
     char recvbuf[BUFFER];
     int recvbuflen = BUFFER;
@@ -34,13 +32,13 @@ void* client_handling(void* p_args) {
                             "*                                                            *\n\r"
                             "==============================================================\n\r";
     
-    send(*p->socket, clear_message, strlen(clear_message), 0);
-    send(*p->socket, welcome_message, strlen(welcome_message), 0);
+    send(*p_client->socket, clear_message, strlen(clear_message), 0);
+    send(*p_client->socket, welcome_message, strlen(welcome_message), 0);
 
     printf("clients: %d\n", client_num);
 
     if(client_num == 1) {
-        send(*p->socket, wait_others_message, strlen(wait_others_message), 0);
+        send(*p_client->socket, wait_others_message, strlen(wait_others_message), 0);
     }
     else {
         for(int i = 0; i < CLIENTS; i++) {
@@ -52,11 +50,11 @@ void* client_handling(void* p_args) {
 
     //  Prompt action from client
     do {
-        result = recv(*p->socket, recvbuf, recvbuflen, 0);  
+        result = recv(*p_client->socket, recvbuf, recvbuflen, 0);  
     
         if(result > 0) {
             recvbuf[result] = '\0';
-            getpeername(*p->socket, (struct sockaddr*) &client_address, &clientLen);
+            getpeername(*p_client->socket, (struct sockaddr*) &client_address, &clientLen);
             broadcast(ntohs(client_address.sin_port), recvbuf); // UTILITY LIBRARY FUNCTION [ BROADCAST ]
             answer = recvbuf; 
             num = atoi(answer); // cast answer to integer
@@ -66,12 +64,12 @@ void* client_handling(void* p_args) {
                 case 1:  
                     // Create game thread 
                     if(player_num < GAMERS) {
-                        clients[*p->index] = 0;
+                        clients[*p_client->index] = 0;
                     
-                        if(client_num == CLIENTS - 1 && *p->index == CLIENTS - 1) {
-                            *p->index = 0;
+                        if(client_num == CLIENTS - 1 && *p_client->index == CLIENTS - 1) {
+                            *p_client->index = 0;
                         }
-                        array_index = *p->index;
+                        array_index = *p_client->index;
                         client_num--;
                     
                         if(client_num == 1) {
@@ -84,7 +82,7 @@ void* client_handling(void* p_args) {
 
                         player_num++;
                         printf("PLAYER_NUM:%d\n", player_num);
-                        response = pthread_create(&game_thread, NULL, (void*)game_handling, p);
+                        response = pthread_create(&game_thread, NULL, (void*)game_handling, p_client);
                         if(response) {
                             printf("Unable to create thread");
                             pthread_exit(NULL);
@@ -100,12 +98,12 @@ void* client_handling(void* p_args) {
                             if(client_num != CLIENTS) {  
                                 for(int i=0; i<CLIENTS; i++) {
                                     if(clients[i] == 0) {
-                                        clients[i] = *p->socket;
-                                        *p->index = i;
+                                        clients[i] = *p_client->socket;
+                                        *p_client->index = i;
                                         break;
                                     }
                                 }
-                                array_index = *p->index;
+                                array_index = *p_client->index;
                                 array_index++;
                                 client_num++;
 
@@ -125,28 +123,28 @@ void* client_handling(void* p_args) {
                             }
                             else {
                                 printf("Chat was full\n");   
-                                shutdown(*p->socket, SD_BOTH);
-                                closesocket(*p->socket);
+                                shutdown(*p_client->socket, SD_BOTH);
+                                closesocket(*p_client->socket);
                             }    
                         }
                         else {
                             player_quit = 0;
                             printf("player quitted game\n");   
-                            shutdown(*p->socket, SD_BOTH);
-                            closesocket(*p->socket);
+                            shutdown(*p_client->socket, SD_BOTH);
+                            closesocket(*p_client->socket);
                         }       
                     }           
             }
           
             // Check if quit command is typed
             if(!memcmp(recvbuf, "!quit", 5 * sizeof(char))) {
-                getpeername(*p->socket, (struct sockaddr*) &client_address, &clientLen);
+                getpeername(*p_client->socket, (struct sockaddr*) &client_address, &clientLen);
                 printf("Client quitted at: %s: %d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
                 break;
             }
         }   
         else if(result == 0) {
-            getpeername(*p->socket, (struct sockaddr*) &client_address, &clientLen);
+            getpeername(*p_client->socket, (struct sockaddr*) &client_address, &clientLen);
             broadcast(ntohs(client_address.sin_port), "disconnected\n");
             printf("Client disconnected at: %s: %d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
             break;
@@ -154,14 +152,14 @@ void* client_handling(void* p_args) {
     } while(1);
     
     // Shutdown client connection
-    shutdown(*p->socket, SD_BOTH);
-    closesocket(*p->socket);
-    clients[*p->index] = 0;
+    shutdown(*p_client->socket, SD_BOTH);
+    closesocket(*p_client->socket);
+    clients[*p_client->index] = 0;
 
-    if(client_num == CLIENTS - 1 && *p->index == CLIENTS - 1) {
-        *p->index = 0;
+    if(client_num == CLIENTS - 1 && *p_client->index == CLIENTS - 1) {
+        *p_client->index = 0;
     }
-    array_index = *p->index;
+    array_index = *p_client->index;
     client_num--;
    
     if(client_num == 1) {
@@ -175,8 +173,8 @@ void* client_handling(void* p_args) {
     printf("CLIENTIT LOPUSSA:%d\n", client_num);
     //  Free dynamic allocated memory
     free(notice_text);
-    free(p->socket);
-    free(p->index);
-    free(p);
-    p = NULL;
+    free(p_client->socket);
+    free(p_client->index);
+    free(p_client);
+    p_client = NULL;
 }

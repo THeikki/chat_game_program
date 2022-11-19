@@ -25,7 +25,7 @@ int initialize_winsock() {
 */
 int create_server() {
     int response;
-    struct arg *args;
+    struct client *p_client;
     char* info_message = "Chat is full..";
     
     // Create socket
@@ -47,25 +47,25 @@ int create_server() {
         printf("Client connected at: %s: %d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
         if(client_num < CLIENTS) {
-            args = malloc(sizeof(arguments));
-            args->socket = malloc(sizeof(int));
-            args->index = malloc(sizeof(int));  
-            *args->socket = client_socket;
-            *args->index = array_index;
-            clients[array_index] = *args->socket;
+            p_client = malloc(sizeof(client_struct));
+            p_client->socket = malloc(sizeof(int));
+            p_client->index = malloc(sizeof(int));  
+            *p_client->socket = client_socket;
+            *p_client->index = array_index;
+            clients[array_index] = *p_client->socket;
             client_num++;
             array_index++;
            
             //  Create new thread
-            response = pthread_create(&client_thread, NULL, (void *)client_handling, args);
+            response = pthread_create(&client_thread, NULL, (void *)client_handling, p_client);
             if(response) {
                 printf("Error:unable to create thread, %d\n", WSAGetLastError);
-                free(args->socket);
-                free(args->index);
-                free(args);
-                args->socket = NULL;
-                args->index = NULL;
-                args = NULL;
+                free(p_client->socket);
+                free(p_client->index);
+                free(p_client);
+                p_client->socket = NULL;
+                p_client->index = NULL;
+                p_client = NULL;
                 exit(-1);
             }
         }

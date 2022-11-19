@@ -22,11 +22,11 @@ struct array {
     int grid_array[HARD_ROWS][HARD_COLUMNS];
 };
 
-static struct arg {
+static struct client {
     int* socket;
     int* index;
     struct array level;
-}arguments;
+}client_struct;
 
 int initialize_winsock();
 int create_server();
