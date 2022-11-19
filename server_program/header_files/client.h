@@ -13,6 +13,6 @@ extern socklen_t clientLen;
 
 extern int player_num;
 
-void* client_handling(void* args);
+void* client_handling(void* client_args);
 
 #endif

@@ -21,15 +21,15 @@ extern char* grid_numbers;
 extern char* vertical_numbers;
 extern char* grid_arr;
 
-void* game_handling(void* ptr);
-int choose_difficulty_level(void* p_arg);
-void print_grid(void* p_arg, int row_settings, int column_settings);
-void setup_mines(void* p_arg, int row_settings, int column_settings, int mine_settings, int difficulty);
-void get_player_input(void* p_arg, int column_settings, int difficulty);
-void check_move(void* p_arg, int row_settings, int column_settings);
-void print_number_of_mines_grid(void* p_arg);
-void check_if_win(void* p_arg, int row_settings, int column_settings);
-void reveal_zero_numbers(void* p_arg, int x, int y, int row_settings, int column_settings);
-void gameover_action_prompt(void* p_arg, int status);
+void* game_handling(void* client_args);
+int choose_difficulty_level(void* client_args);
+void print_grid(void* client_args, int row_settings, int column_settings);
+void setup_mines(void* client_args, int row_settings, int column_settings, int mine_settings, int difficulty);
+void get_player_input(void* client_args, int column_settings, int difficulty);
+void check_move(void* client_args, int row_settings, int column_settings);
+void print_number_of_mines_grid(void* client_args);
+void check_if_win(void* client_args, int row_settings, int column_settings);
+void reveal_zero_numbers(void* client_args, int x, int y, int row_settings, int column_settings);
+void gameover_action_prompt(void* client_args, int status);
 
 #endif
